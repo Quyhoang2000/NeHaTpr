@@ -1,0 +1,9 @@
+Package: com.quyhoang.elite48
+Name: Elite Luxury v4.8
+Depends: mobilesubstrate
+Version: 4.8
+Architecture: iphoneos-arm64
+Description: Premium Menu System for iOS.
+Maintainer: QuyHoang
+Author: QuyHoang
+Section: Tweaks
