@@ -1,6 +1,9 @@
-name: Build-Elite
+name: Build-Elite-Final-v4.8
 
-on: [push, workflow_dispatch]
+on: 
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,24 +17,27 @@ jobs:
 
       - name: Install Theos
         run: |
+          # Xóa sạch nếu có tàn dư và cài mới Theos
+          rm -rf ~/theos
           git clone --recursive https://github.com/theos/theos.git ~/theos
 
-      - name: Tải iOS SDK (Bắt buộc để không lỗi)
+      - name: Tải iOS SDK (Sửa lỗi folder tồn tại)
         run: |
-          # Tải SDK 14.5 để tương thích tốt với iPhone 6s Plus
+          # Đảm bảo thư mục sdks trống trước khi clone
+          rm -rf ~/theos/sdks
           git clone --depth 1 https://github.com/theos/sdks.git ~/theos/sdks
 
       - name: Build Package
         run: |
           export THEOS=~/theos
           export PATH=$THEOS/bin:$PATH
-          # Thêm dòng này để chỉ định SDK vừa tải
+          # Lệnh build chính thức
           make package FINALPACKAGE=1
         env:
           THEOS: ~/theos
 
-      - name: Upload Result
+      - name: Upload File .DEB
         uses: actions/upload-artifact@v4
         with:
-          name: Elite-Result-v4.8
+          name: Elite-v4.8-iPhone6sPlus
           path: packages/*.deb
