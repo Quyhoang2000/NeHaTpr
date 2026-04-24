@@ -1,32 +1,37 @@
-name: Build Elite Luxury v4.8
+name: Build-Elite
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-13 # Dùng macOS 13 để tránh hàng chờ dài của macOS 12
-
+    runs-on: macos-latest
     steps:
-      - name: Checkout dự án
+      - name: Checkout Project
         uses: actions/checkout@v4
 
-      - name: Cài đặt Theos & SDK
-        # Đây là Action uy tín nhất hiện nay dành cho Tweak iOS
-        uses: theos/setup-theos-action@v1.0.3 
-        with:
-          # Tự động tải SDK phù hợp nhất cho iPhone 6s Plus
-          sdk-url: https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz
+      - name: Install ldid
+        run: brew install ldid
 
-      - name: Tiến hành Build Tweak
+      - name: Install Theos
         run: |
-          make clean
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+
+      - name: Tải iOS SDK (Bắt buộc để không lỗi)
+        run: |
+          # Tải SDK 14.5 để tương thích tốt với iPhone 6s Plus
+          git clone --depth 1 https://github.com/theos/sdks.git ~/theos/sdks
+
+      - name: Build Package
+        run: |
+          export THEOS=~/theos
+          export PATH=$THEOS/bin:$PATH
+          # Thêm dòng này để chỉ định SDK vừa tải
           make package FINALPACKAGE=1
-        
-      - name: Lưu trữ và Xuất file .deb
+        env:
+          THEOS: ~/theos
+
+      - name: Upload Result
         uses: actions/upload-artifact@v4
         with:
-          name: Elite-v4.8-iPhone6sPlus
+          name: Elite-Result-v4.8
           path: packages/*.deb
