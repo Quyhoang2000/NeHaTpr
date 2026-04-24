@@ -1,29 +1,19 @@
-name: Build-Elite-Final-v4.8
+name: Build-Elite-Luxury-Final
 
-on: 
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Checkout Project
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install ldid
-        run: brew install ldid
-
-      - name: Install Theos
+      - name: Setup Theos
         run: |
-          # Xóa sạch nếu có tàn dư và cài mới Theos
+          brew install ldid
           rm -rf ~/theos
           git clone --recursive https://github.com/theos/theos.git ~/theos
-
-      - name: Tải iOS SDK (Sửa lỗi folder tồn tại)
-        run: |
-          # Đảm bảo thư mục sdks trống trước khi clone
           rm -rf ~/theos/sdks
           git clone --depth 1 https://github.com/theos/sdks.git ~/theos/sdks
 
@@ -31,13 +21,13 @@ jobs:
         run: |
           export THEOS=~/theos
           export PATH=$THEOS/bin:$PATH
-          # Lệnh build chính thức
+          make clean
           make package FINALPACKAGE=1
         env:
           THEOS: ~/theos
 
-      - name: Upload File .DEB
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Elite-v4.8-iPhone6sPlus
+          name: Elite-v4.8-Stable
           path: packages/*.deb
