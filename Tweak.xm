@@ -1,54 +1,39 @@
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
 
-#define kServerURL @"https://majestic-tartufo-52edcd.netlify.app/" // THAY LINK HTML CỦA BẠN VÀO ĐÂY
+// Thay bằng link GitHub Pages chứa file HTML của bạn
+#define kServerURL @"https://majestic-tartufo-52edcd.netlify.app/" 
 
-@interface EliteLuxuryController : UIViewController <WKNavigationDelegate, WKScriptMessageHandler>
-@property (nonatomic, strong) WKWebView *menuWebView;
+@interface EliteController : UIViewController <WKNavigationDelegate>
+@property (nonatomic, strong) WKWebView *webView;
 @end
 
-@implementation EliteLuxuryController
-
+@implementation EliteController
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     self.view.backgroundColor = [UIColor clearColor];
-    
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-    // Cho phép thực thi script và giao tiếp với H5GG
-    [config.userContentController addScriptMessageHandler:self name:@"eliteHandler"];
-    
-    self.menuWebView = [[WKWebView alloc] initWithFrame:self.view.bounds configuration:config];
-    self.menuWebView.navigationDelegate = self;
-    self.menuWebView.backgroundColor = [UIColor clearColor];
-    self.menuWebView.opaque = NO;
-    self.menuWebView.scrollView.bounces = NO;
-    self.menuWebView.scrollView.scrollEnabled = NO;
-
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kServerURL]];
-    [self.menuWebView loadRequest:request];
-    [self.view addSubview:self.menuWebView];
+    [config.preferences setValue:@YES forKey:@"allowFileAccessFromFileURLs"];
+    self.webView = [[WKWebView alloc] initWithFrame:self.view.bounds configuration:config];
+    self.webView.navigationDelegate = self;
+    self.webView.backgroundColor = [UIColor clearColor];
+    self.webView.opaque = NO;
+    self.webView.scrollView.bounces = NO;
+    [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:kServerURL]]];
+    [self.view addSubview:self.webView];
 }
-
-// Xử lý khi có lệnh từ HTML gửi về (nếu cần mở rộng sau này)
-- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
-    if ([message.name isEqualToString:@"eliteHandler"]) {
-        NSLog(@"[Elite] Nhận lệnh từ Menu: %@", message.body);
-    }
-}
-
 @end
 
 %hook UnityFramework
 - (void)didMoveToWindow {
     %orig;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
         dispatch_async(dispatch_get_main_queue(), ^{
-            UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
-            EliteLuxuryController *vc = [[EliteLuxuryController alloc] init];
-            vc.view.frame = keyWindow.bounds;
-            [keyWindow addSubview:vc.view];
+            UIWindow *win = [UIApplication sharedApplication].keyWindow;
+            EliteController *vc = [[EliteController alloc] init];
+            vc.view.frame = win.bounds;
+            [win addSubview:vc.view];
         });
     });
 }
