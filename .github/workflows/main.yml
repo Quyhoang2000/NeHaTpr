@@ -1,0 +1,28 @@
+name: Build Elite Luxury v4.8
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout dự án
+        uses: actions/checkout@v4
+
+      - name: Setup Theos Environment
+        uses: theos/setup-theos@master
+
+      - name: Tiến hành Build Tweak
+        run: |
+          make clean
+          make package FINALPACKAGE=1
+        
+      - name: Lưu trữ và Xuất file .deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: Elite-v4.8-Result
+          path: packages/*.deb
