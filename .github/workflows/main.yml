@@ -13,8 +13,11 @@ jobs:
       - name: Checkout dự án
         uses: actions/checkout@v4
 
+      # Sửa lỗi repository not found bằng cách dùng tên đúng:
       - name: Setup Theos Environment
-        uses: theos/setup-theos@master
+        uses: theos/setup-theos-action@v1
+        with:
+          theos-src: https://github.com/theos/theos.git
 
       - name: Tiến hành Build Tweak
         run: |
