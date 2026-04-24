@@ -13,31 +13,32 @@ jobs:
       - name: Checkout dự án
         uses: actions/checkout@v4
 
-      - name: Cài đặt Theos (Bản Fix link 2026)
+      - name: Thiết lập môi trường Theos chuyên nghiệp
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential perl git curl libssl-dev
+          sudo apt-get install -y build-essential perl git curl libssl-dev xz-utils
           
           export THEOS=$GITHUB_WORKSPACE/theos
           echo "THEOS=$THEOS" >> $GITHUB_ENV
           
-          # Tải Theos cốt lõi
+          # 1. Tải Theos
           git clone --recursive https://github.com/theos/theos.git $THEOS
           
-          # Tải Toolchain từ nguồn dự phòng ổn định
+          # 2. Tải Toolchain từ nguồn thay thế (Fix 9 byte)
           mkdir -p $THEOS/toolchain
-          curl -L "https://github.com/theos/sdks/releases/download/v1.0/linux-arm64-toolchain.tar.xz" -o toolchain.tar.xz || \
-          curl -L "https://github.com/theos/toolchain/releases/download/linux-x86_64/linux-x86_64.tar.xz" -o toolchain.tar.xz
+          # Sử dụng link tải trực tiếp từ kho lưu trữ của Cabal hoặc Procursus
+          curl -L "https://github.com/kabiroberon/theos-toolchain-linux/releases/download/v1.0/toolchain-linux-arm64.tar.gz" -o toolchain.tar.gz
+          tar -xzf toolchain.tar.gz -C $THEOS/toolchain
+          rm toolchain.tar.gz
           
-          tar -xf toolchain.tar.xz -C $THEOS/toolchain
-          rm toolchain.tar.xz
-          
-          # Tải SDK iOS 14.5
+          # 3. Tải SDK iOS 14.5 chuẩn
           git clone --depth 1 https://github.com/theos/sdks.git $THEOS/sdks
 
       - name: Tiến hành Build Tweak
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
+          # Ép hệ thống dùng đúng Toolchain vừa tải
+          export PATH=$THEOS/toolchain/bin:$PATH
           make clean
           make package FINALPACKAGE=1
         
