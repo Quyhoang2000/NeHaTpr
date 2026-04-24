@@ -7,43 +7,26 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-13 # Dùng macOS 13 để tránh hàng chờ dài của macOS 12
 
     steps:
       - name: Checkout dự án
         uses: actions/checkout@v4
 
-      - name: Thiết lập môi trường Theos chuyên nghiệp
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential perl git curl libssl-dev xz-utils
-          
-          export THEOS=$GITHUB_WORKSPACE/theos
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          
-          # 1. Tải Theos
-          git clone --recursive https://github.com/theos/theos.git $THEOS
-          
-          # 2. Tải Toolchain từ nguồn thay thế (Fix 9 byte)
-          mkdir -p $THEOS/toolchain
-          # Sử dụng link tải trực tiếp từ kho lưu trữ của Cabal hoặc Procursus
-          curl -L "https://github.com/kabiroberon/theos-toolchain-linux/releases/download/v1.0/toolchain-linux-arm64.tar.gz" -o toolchain.tar.gz
-          tar -xzf toolchain.tar.gz -C $THEOS/toolchain
-          rm toolchain.tar.gz
-          
-          # 3. Tải SDK iOS 14.5 chuẩn
-          git clone --depth 1 https://github.com/theos/sdks.git $THEOS/sdks
+      - name: Cài đặt Theos & SDK
+        # Đây là Action uy tín nhất hiện nay dành cho Tweak iOS
+        uses: theos/setup-theos-action@v1.0.3 
+        with:
+          # Tự động tải SDK phù hợp nhất cho iPhone 6s Plus
+          sdk-url: https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz
 
       - name: Tiến hành Build Tweak
         run: |
-          export THEOS=$GITHUB_WORKSPACE/theos
-          # Ép hệ thống dùng đúng Toolchain vừa tải
-          export PATH=$THEOS/toolchain/bin:$PATH
           make clean
           make package FINALPACKAGE=1
         
       - name: Lưu trữ và Xuất file .deb
         uses: actions/upload-artifact@v4
         with:
-          name: Elite-v4.8-Final
+          name: Elite-v4.8-iPhone6sPlus
           path: packages/*.deb
