@@ -13,18 +13,36 @@ jobs:
       - name: Checkout dự án
         uses: actions/checkout@v4
 
-      - name: Setup Theos Environment
-        uses: theos/setup-theos-action@v1
-        with:
-          theos-src: https://github.com/theos/theos.git
+      - name: Cài đặt Theos thủ công
+        run: |
+          # Cài đặt các gói phụ trợ
+          sudo apt-get update
+          sudo apt-get install -y fakechroot build-essential libz-dev libssl-dev xz-utils curl
+          
+          # Thiết lập biến môi trường
+          export THEOS=$GITHUB_WORKSPACE/theos
+          echo "THEOS=$THEOS" >> $GITHUB_ENV
+          
+          # Tải Theos
+          git clone --recursive https://github.com/theos/theos.git $THEOS
+          
+          # Tải Toolchain chính chủ (Bản Linux x86_64)
+          mkdir -p $THEOS/toolchain
+          curl -L "https://github.com/theos/toolchain/releases/download/linux-x86_64/toolchain-linux-x86_64.tar.xz" -o toolchain.tar.xz
+          tar -xf toolchain.tar.xz -C $THEOS/toolchain
+          rm toolchain.tar.xz
+          
+          # Tải SDK iOS 14.5 (Bản ổn định nhất cho Tweak menu)
+          git clone --depth 1 https://github.com/theos/sdks.git $THEOS/sdks
 
       - name: Tiến hành Build Tweak
         run: |
+          export THEOS=$GITHUB_WORKSPACE/theos
           make clean
           make package FINALPACKAGE=1
         
       - name: Lưu trữ và Xuất file .deb
         uses: actions/upload-artifact@v4
         with:
-          name: Elite-v4.8-Result
+          name: Elite-v4.8-Final
           path: packages/*.deb
