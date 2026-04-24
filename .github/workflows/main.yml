@@ -15,24 +15,22 @@ jobs:
 
       - name: Cài đặt Theos thủ công
         run: |
-          # Cài đặt các gói phụ trợ
           sudo apt-get update
           sudo apt-get install -y fakechroot build-essential libz-dev libssl-dev xz-utils curl
           
-          # Thiết lập biến môi trường
           export THEOS=$GITHUB_WORKSPACE/theos
           echo "THEOS=$THEOS" >> $GITHUB_ENV
           
-          # Tải Theos
+          # 1. Tải bộ khung Theos
           git clone --recursive https://github.com/theos/theos.git $THEOS
           
-          # Tải Toolchain chính chủ (Bản Linux x86_64)
+          # 2. Tải Toolchain (Đã fix đúng tên file rút gọn của Theos)
           mkdir -p $THEOS/toolchain
-          curl -L "https://github.com/theos/toolchain/releases/download/linux-x86_64/toolchain-linux-x86_64.tar.xz" -o toolchain.tar.xz
+          curl -sL "https://github.com/theos/toolchain/releases/latest/download/linux-x86_64.tar.xz" -o toolchain.tar.xz
           tar -xf toolchain.tar.xz -C $THEOS/toolchain
           rm toolchain.tar.xz
           
-          # Tải SDK iOS 14.5 (Bản ổn định nhất cho Tweak menu)
+          # 3. Tải SDK iOS
           git clone --depth 1 https://github.com/theos/sdks.git $THEOS/sdks
 
       - name: Tiến hành Build Tweak
