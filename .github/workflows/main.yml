@@ -7,35 +7,19 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-12 # Chuyển sang build trên macOS để tránh lỗi Toolchain của Linux
 
     steps:
       - name: Checkout dự án
         uses: actions/checkout@v4
 
-      - name: Cài đặt Theos thủ công
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fakechroot build-essential libz-dev libssl-dev xz-utils curl
-          
-          export THEOS=$GITHUB_WORKSPACE/theos
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          
-          # 1. Tải bộ khung Theos
-          git clone --recursive https://github.com/theos/theos.git $THEOS
-          
-          # 2. Tải Toolchain (Đã fix đúng tên file rút gọn của Theos)
-          mkdir -p $THEOS/toolchain
-          curl -sL "https://github.com/theos/toolchain/releases/latest/download/linux-x86_64.tar.xz" -o toolchain.tar.xz
-          tar -xf toolchain.tar.xz -C $THEOS/toolchain
-          rm toolchain.tar.xz
-          
-          # 3. Tải SDK iOS
-          git clone --depth 1 https://github.com/theos/sdks.git $THEOS/sdks
+      - name: Setup Theos
+        uses: roothide/setup-theos@master # Dùng fork cực kỳ ổn định này
+        with:
+          theos-src: https://github.com/theos/theos.git
 
       - name: Tiến hành Build Tweak
         run: |
-          export THEOS=$GITHUB_WORKSPACE/theos
           make clean
           make package FINALPACKAGE=1
         
